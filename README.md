@@ -34,7 +34,9 @@ The solution maps to a standard client-server architecture, but running locally 
 
 ## 📦 Installation
 
-1.  Download the latest `ActivityMonitor.Installer.exe` from the [Releases](tags) page.
+[![Download Latest Installer](https://img.shields.io/github/v/release/paturikaustubh/activity-monitor?label=Download%20Installer&style=for-the-badge&color=blue)](https://github.com/paturikaustubh/activity-monitor/releases/latest/download/ActivityMonitor.Installer.exe)
+
+1.  **Click the button above** (or go to [Releases](https://github.com/paturikaustubh/activity-monitor/releases)) to download `ActivityMonitor.Installer.exe`.
 2.  Run the installer.
 3.  Choose your settings:
     - **Strict Monitor**: Standard mouse/keyboard check.

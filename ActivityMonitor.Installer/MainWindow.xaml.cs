@@ -365,7 +365,7 @@ namespace ActivityMonitor.Installer
 
 
 
-        private void RegisterUninstaller(string installDir)
+        private void RegisterUninstaller(string installDir, string version)
         {
             try
             {
@@ -381,10 +381,10 @@ namespace ActivityMonitor.Installer
                             string iconPath = Path.Combine(installDir, "ActivityMonitor.UI.exe"); // Use UI icon
 
                             key.SetValue("DisplayName", "Activity Monitor");
-                            key.SetValue("ApplicationVersion", "1.0.0");
+                            key.SetValue("ApplicationVersion", version);
                             key.SetValue("Publisher", "ActivityMonitor");
                             key.SetValue("DisplayIcon", iconPath);
-                            key.SetValue("DisplayVersion", "1.0.0");
+                            key.SetValue("DisplayVersion", version);
                             key.SetValue("InstallDate", DateTime.Now.ToString("yyyyMMdd"));
                             key.SetValue("UninstallString", $"\"{uninstallerPath}\"");
                             key.SetValue("InstallLocation", installDir);
