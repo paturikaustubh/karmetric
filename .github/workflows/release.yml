@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Read Configuration
+        id: config
+        shell: powershell
+        run: |
+          $json = Get-Content monitor.json | ConvertFrom-Json
+          echo "VERSION=$($json.version)" >> $env:GITHUB_OUTPUT
+
+      - name: Build Installer
+        shell: powershell
+        run: .\package_installer.ps1
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.config.outputs.VERSION }}
+          name: Custom Activity Monitor v${{ steps.config.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            ActivityMonitor.Installer/bin/Release/net48/ActivityMonitor.Installer.exe
+            monitor.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

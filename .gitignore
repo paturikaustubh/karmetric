@@ -1,0 +1,36 @@
+# Build Results
+[Bb]in/
+[Oo]bj/
+*.exe
+*.dll
+*.pdb
+*.zip
+!package_installer.ps1
+
+# Visual Studio
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Temporary Build Folders
+TempBuild/
+.Setup/
+ActivityMonitor.Installer/payload.zip
+temp_payload/
+test_install/
+
+# Logs and Data
+*.log
+*.db
+*.db-shm
+*.db-wal
+AppData/
+logs/
+
+# OS Files
+Thumbs.db
+.DS_Store
+
