@@ -382,7 +382,7 @@ namespace ActivityMonitor.Installer
 
                             key.SetValue("DisplayName", "Activity Monitor");
                             key.SetValue("ApplicationVersion", version);
-                            key.SetValue("Publisher", "ActivityMonitor");
+                            key.SetValue("Publisher", "Kaustubh Paturi");
                             key.SetValue("DisplayIcon", iconPath);
                             key.SetValue("DisplayVersion", version);
                             key.SetValue("InstallDate", DateTime.Now.ToString("yyyyMMdd"));

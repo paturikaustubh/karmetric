@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>..\ActivityMonitor.ico</ApplicationIcon>
     <UserSecretsId>dotnet-ActivityMonitor.Background-6112f22c-ec24-4f57-abf9-bb569073fbfb</UserSecretsId>
+    <Authors>Kaustubh Paturi</Authors>
   </PropertyGroup>
 
   <ItemGroup>

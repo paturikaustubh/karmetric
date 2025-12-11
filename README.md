@@ -2,6 +2,8 @@
 
 **Activity Monitor** is a background service and UI application designed to intelligently track working sessions. It solves the common problem of "premature timeout" during inactive periods (like reading documents, watching videos, or sitting in a silent call) by using audio stream detection and power management request monitoring.
 
+[![Download Latest Installer](https://img.shields.io/github/v/release/paturikaustubh/activity-monitor?label=Download%20Installer&style=for-the-badge&color=blue)](https://github.com/paturikaustubh/activity-monitor/releases/latest/download/ActivityMonitor.Installer.exe)
+
 ## 🚀 Key Features
 
 - **Smart Idle Detection**: Doesn't just check for mouse movements. It listens for active audio streams (Teams calls, Zoom, Videos) and "Keep Awake" power requests (Presentations, Fullscreen Video).
@@ -34,9 +36,7 @@ The solution maps to a standard client-server architecture, but running locally 
 
 ## 📦 Installation
 
-[![Download Latest Installer](https://img.shields.io/github/v/release/paturikaustubh/activity-monitor?label=Download%20Installer&style=for-the-badge&color=blue)](https://github.com/paturikaustubh/activity-monitor/releases/latest/download/ActivityMonitor.Installer.exe)
-
-1.  **Click the button above** (or go to [Releases](https://github.com/paturikaustubh/activity-monitor/releases)) to download `ActivityMonitor.Installer.exe`.
+1.  Download the latest `ActivityMonitor.Installer.exe` from the link above (or the [Releases](https://github.com/paturikaustubh/activity-monitor/releases) page).
 2.  Run the installer.
 3.  Choose your settings:
     - **Strict Monitor**: Standard mouse/keyboard check.
