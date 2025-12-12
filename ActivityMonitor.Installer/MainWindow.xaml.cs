@@ -44,12 +44,9 @@ namespace ActivityMonitor.Installer
             // Runtime Install Logic (User Request)
             bool installRuntime = false;
             bool createDesktop = true;
-            bool strictMonitor = false;
-            Dispatcher.Invoke(() => {
-                installRuntime = ChkRuntime.IsChecked == true;
-                createDesktop = ChkDesktopShortcut.IsChecked == true;
-                strictMonitor = ChkStrictMonitor.IsChecked == true;
-            });
+            // Strict Monitor is now the ONLY mode as per update v0.1.X - Simple Idle Detection
+            // bool strictMonitor = false; // logic removed
+            // Dispatcher.Invoke(() => strictMonitor = ChkStrictMonitor.IsChecked == true);
 
             if (installRuntime)
             {
@@ -161,9 +158,6 @@ namespace ActivityMonitor.Installer
       ""Microsoft"": ""Warning"",
       ""Microsoft.Hosting.Lifetime"": ""Information""
     }}
-  }},
-  ""ActivityMonitor"": {{
-    ""StrictMonitor"": {strictMonitor.ToString().ToLower()}
   }}
 }}";
                 File.WriteAllText(appSettingsPath, jsonContent);

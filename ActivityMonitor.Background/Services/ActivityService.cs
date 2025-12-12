@@ -126,38 +126,12 @@ namespace ActivityMonitor.Background.Services
                     {
                         if (idleSeconds >= IdleThresholdSeconds)
                         {
-                            // Strict Monitor Check
-                            bool strictMonitor = _configuration.GetValue<bool>("ActivityMonitor:StrictMonitor"); // Default false if missing
-                            bool preventSessionEnd = false;
-                            
-                            _logger.LogInformation($"Idle threshold reached ({idleSeconds}s). Strict: {strictMonitor}. Checking Audio...");
+                            _logger.LogInformation($"Idle threshold reached ({idleSeconds}s). Stopping Session.");
 
-                            if (!strictMonitor)
-                            {
-                                // Smart Mode: Check if system is busy (Video/Call)
-                                // 1. Check for ANY active audio session (Silent Calls, Videos, etc.)
-                                // This uses Core Audio API to see if an app has an ACTIVE stream
-                                if (AudioUtils.IsAudioSessionActive(_logger))
-                                {
-                                    preventSessionEnd = true;
-                                    _logger.LogInformation($"Smart Mode: Active Audio Session detected (Call/Video), keeping session active.");
-                                }
-                                
-                                // 2. Fallback: Try PowerUtils (requires admin, may fail silently)
-                                if (!preventSessionEnd && PowerUtils.IsSystemKeepAwake())
-                                {
-                                    preventSessionEnd = true;
-                                    _logger.LogInformation("Smart Mode: Power request detected, keeping session active.");
-                                }
-                            }
-
-                            if (!preventSessionEnd)
-                            {
-                                // Stop Session.
-                                // Backdate the EndTime to when idle started
-                                var endTime = DateTime.Now.AddSeconds(-idleSeconds);
-                                await StopSession(endTime, "Idle Timeout");
-                            }
+                            // Stop Session.
+                            // Backdate the EndTime to when idle started
+                            var endTime = DateTime.Now.AddSeconds(-idleSeconds);
+                            await StopSession(endTime, "Idle Timeout");
                         }
                     }
                     else // Not Working

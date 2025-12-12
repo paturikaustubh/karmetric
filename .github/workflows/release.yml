@@ -34,7 +34,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.config.outputs.VERSION }}
-          name: Custom Activity Monitor v${{ steps.config.outputs.VERSION }}
+          name: v${{ steps.config.outputs.VERSION }}
           draft: false
           prerelease: false
           files: |

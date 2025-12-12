@@ -22,6 +22,7 @@
                     <CheckBox x:Name="ChkDesktopShortcut" Content="Create Shortcut on Desktop" 
                               IsChecked="True" HorizontalAlignment="Center" Margin="0,0,0,10" Foreground="#555"/>
                     
+                    <!--
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <CheckBox x:Name="ChkStrictMonitor" Content="Enable strict monitor" 
                                   IsChecked="False" VerticalAlignment="Center" Foreground="#555"/>
@@ -41,6 +42,7 @@
                             </TextBlock.ToolTip>
                         </TextBlock>
                     </StackPanel>
+                    -->
                 </StackPanel>
 
                 <!-- Container 3: Install Button -->

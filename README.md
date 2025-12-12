@@ -6,8 +6,8 @@
 
 ## 🚀 Key Features
 
-- **Smart Idle Detection**: Doesn't just check for mouse movements. It listens for active audio streams (Teams calls, Zoom, Videos) and "Keep Awake" power requests (Presentations, Fullscreen Video).
-- **Automatic Session Management**: Automatically checks you in when you start working and checks you out when you are away.
+- **Idle Detection**: Marks you as "Away" if your keyboard/mouse are inactive for 5 minutes.
+- **Automatic Check In**: Starts a session when you return from being idle.
 - **Midnight Aware**: Correctly handles sessions that span across midnight, splitting them into two logical daily records.
 - **Offline First**: Stores all session data in a local SQLite database.
 - **No "Time Travel" Bugs**: Robust logic handles system sleep/wake cycles to prevent corrupt data entries.
@@ -64,6 +64,15 @@ This will produce an installer in `ActivityMonitor.Installer\bin\Release\net48\`
 
 The project uses `monitor.json` as the Single Source of Truth for versions.
 
-1.  Update version in `monitor.json`.
-2.  Commit and Push to `main`.
-3.  GitHub Actions will automatically build and tag a new release.
+## 🤝 Contributing
+
+We welcome contributions! To contribute to Activity Monitor, please follow these steps:
+
+1.  **Fork the Repository**: Fork the project to your GitHub account.
+2.  **Clone Your Fork**: Clone your forked repository to your local machine.
+3.  **Create a Feature Branch**: Create a new branch for your feature or bug fix.
+4.  **Implement Your Changes**: Make your desired code changes.
+5.  **Commit Your Changes**: Commit your changes with a clear and descriptive message.
+6.  **Push to Your Fork**: Push your new branch to your forked repository on GitHub.
+7.  **Open a Pull Request**: Open a Pull Request from your feature branch to the `dev` branch of the original repository.
+8.  **Review and Merge**: Your Pull Request will be reviewed, and upon approval and merging, a new version will be automatically released.
