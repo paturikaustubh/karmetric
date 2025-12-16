@@ -1,10 +1,6 @@
 using ActivityMonitor.Background.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using ActivityMonitor.Background.Infrastructure;
-using Microsoft.Extensions.Logging;
 
 namespace ActivityMonitor.Background
 {
@@ -36,6 +32,10 @@ namespace ActivityMonitor.Background
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    // FIX: Process fails to find wwwroot if Working Directory is System32 (e.g. Start Menu)
+                    // We force the content root to be the application directory.
+                    webBuilder.UseContentRoot(System.AppDomain.CurrentDomain.BaseDirectory);
+
                     webBuilder.ConfigureServices(services =>
                     {
                         services.AddControllers();
@@ -53,11 +53,18 @@ namespace ActivityMonitor.Background
                     
                     webBuilder.Configure(app =>
                     {
+                        app.UseDefaultFiles(); // Serve index.html by default
+                        app.UseStaticFiles();  // Serve files from wwwroot
+
                         app.UseRouting();
                         app.UseCors("AllowAll");
+                        
                         app.UseEndpoints(endpoints =>
                         {
                             endpoints.MapControllers();
+                            
+                            // SPA Fallback: If no controller matches, serve index.html (client-side routing)
+                            endpoints.MapFallbackToFile("index.html");
                         });
                     });
 

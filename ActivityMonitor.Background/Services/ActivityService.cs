@@ -22,6 +22,8 @@ namespace ActivityMonitor.Background.Services
 
         // State
         private bool _isWorking = false;
+        private volatile bool _isShuttingDown = false; // New flag
+        private bool _isLocked = false;
         private long _currentSessionId = 0;
         private DateTime _sessionStartTime;
 
@@ -56,6 +58,7 @@ namespace ActivityMonitor.Background.Services
             // Register Application Shutdown Hook
             _appLifetime.ApplicationStopping.Register(() => 
             {
+                _isShuttingDown = true; // Ensure flag is set on app stop
                 // Synchronous stop on shutdown
                 if (_isWorking)
                 {
@@ -66,6 +69,7 @@ namespace ActivityMonitor.Background.Services
             // Extra Safety: Process Exit (e.g. TaskKill)
             AppDomain.CurrentDomain.ProcessExit += (s, e) => 
             {
+                _isShuttingDown = true;
                 if (_isWorking)
                 {
                     StopSessionSync(DateTime.Now, "Process Exit");
@@ -77,6 +81,7 @@ namespace ActivityMonitor.Background.Services
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
+            _isShuttingDown = true;
             try 
             {
                 SystemEvents.SessionSwitch -= OnSessionSwitch;
@@ -92,6 +97,7 @@ namespace ActivityMonitor.Background.Services
         {
             if (e.Reason == SessionSwitchReason.SessionLock)
             {
+                _isLocked = true;
                 if (_isWorking)
                 {
                     // Fire and forget mechanism for event handler, but prefer Task.Run
@@ -100,6 +106,7 @@ namespace ActivityMonitor.Background.Services
             }
             else if (e.Reason == SessionSwitchReason.SessionUnlock)
             {
+                _isLocked = false;
                 if (!_isWorking)
                 {
                     Task.Run(() => StartSession());
@@ -114,11 +121,12 @@ namespace ActivityMonitor.Background.Services
             // Auto-start session on launch
             await StartSession();
 
-            while (!stoppingToken.IsCancellationRequested)
+            while (!stoppingToken.IsCancellationRequested && !_isShuttingDown)
             {
                 try 
                 {
                     await Task.Delay(CheckIntervalMs, stoppingToken);
+                    if (_isShuttingDown) break; 
 
                     var idleSeconds = IdleUtils.GetIdleTimeSeconds();
 
@@ -136,8 +144,8 @@ namespace ActivityMonitor.Background.Services
                     }
                     else // Not Working
                     {
-                        // Check if back (Active)
-                        if (idleSeconds < 2)
+                        // Check if back (Active) AND distinct session is NOT locked
+                        if (idleSeconds < 2 && !_isLocked)
                         {
                             await StartSession();
                         }
@@ -154,8 +162,15 @@ namespace ActivityMonitor.Background.Services
             }
         }
 
-        private async Task StartSession()
+        public void PrepareForShutdown()
         {
+            _isShuttingDown = true;
+            _logger.LogInformation("Shutdown Initiated via API. No new sessions will be started.");
+        }
+
+        public async Task StartSession()
+        {
+            if (_isShuttingDown) return; // Prevent start if shutting down
             if (_isWorking) return;
 
             _sessionStartTime = DateTime.Now;
@@ -164,7 +179,7 @@ namespace ActivityMonitor.Background.Services
             _logger.LogInformation($"Session Started: {_currentSessionId} at {_sessionStartTime}");
         }
 
-        private async Task StopSession(DateTime endTime, string reason)
+        public async Task StopSession(DateTime endTime, string reason)
         {
             if (!_isWorking) return;
 
@@ -215,10 +230,9 @@ namespace ActivityMonitor.Background.Services
             }
             else if (e.Mode == PowerModes.Resume)
             {
-                if (!_isWorking)
-                {
-                    Task.Run(() => StartSession());
-                }
+                // Do NOT auto-start on resume. 
+                // Wait for either explicit Unlock event OR User Activity Loop (if unlocked).
+                // If resumed to Lock Screen, _isLocked should ideally be set, or handle via loop.
             }
         }
 

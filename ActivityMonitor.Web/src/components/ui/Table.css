@@ -1,0 +1,121 @@
+.table-paginator-container {
+  width: 100%;
+  background-color: white;
+}
+
+table.sessions {
+  width: 100%;
+  border-collapse: collapse;
+
+  --link-color: rgba(var(--primary-color) / 0.3);
+}
+
+table.sessions tr {
+  border-bottom: 1px solid rgba(var(--primary-color) / 0.3);
+}
+
+table.sessions th,
+table.sessions td {
+  padding: 10px 8px;
+  text-align: left;
+}
+
+table.sessions thead {
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 1.15em;
+}
+
+table.sessions tbody tr {
+  transition: background-color 0.1s ease-in-out;
+}
+table.sessions tbody tr:hover {
+  background-color: rgba(var(--primary-color) / 0.03);
+}
+
+/* Visualization Logic */
+table.sessions tbody td:last-child {
+  position: relative;
+  overflow: hidden;
+}
+
+table.sessions tbody tr[data-shift] td:last-child::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  width: 14px;
+  background-color: var(--link-color);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+table.sessions tbody tr[data-shift="in"],
+table.sessions tbody tr[data-shift="in-out"] {
+  border-bottom: 1px solid rgba(var(--primary-color) / 0.2);
+  border-bottom-style: dashed;
+}
+
+/* Coloring */
+table.sessions tbody tr[data-shift="out"] td.shift-in,
+table.sessions tbody tr[data-shift="out"] td.shift-out,
+table.sessions tbody tr[data-shift="out"] td.checkout,
+table.sessions tbody tr[data-shift="out"] td.duration span:first-child,
+table.sessions tbody tr[data-shift="in"] td.shift-in,
+table.sessions tbody tr[data-shift="in"] td.shift-out,
+table.sessions tbody tr[data-shift="in"] td.check-in,
+table.sessions tbody tr[data-shift="in"] td.duration span:first-child,
+table.sessions tbody tr[data-shift="in-out"] td.check-in,
+table.sessions tbody tr[data-shift="in-out"] td.checkout,
+table.sessions tbody tr[data-shift="in-out"] td.duration {
+  color: var(--link-color);
+}
+
+/* Connectors */
+table.sessions tbody tr[data-shift="in"] td:last-child::after {
+  height: 50%;
+  bottom: 0;
+  -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 14 20" xmlns="http://www.w3.org/2000/svg"><path d="M 0,2 H 8 A 4,4 0 0 1 12,6 V 20" fill="none" stroke="black" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>');
+  mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 14 20" xmlns="http://www.w3.org/2000/svg"><path d="M 0,2 H 8 A 4,4 0 0 1 12,6 V 20" fill="none" stroke="black" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>');
+}
+
+table.sessions tbody tr[data-shift="out"] td:last-child::after {
+  height: 50%;
+  top: 0;
+  -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 14 20" xmlns="http://www.w3.org/2000/svg"><path d="M 0,18 H 8 A 4,4 0 0 0 12,14 V 0" fill="none" stroke="black" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>');
+  mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 14 20" xmlns="http://www.w3.org/2000/svg"><path d="M 0,18 H 8 A 4,4 0 0 0 12,14 V 0" fill="none" stroke="black" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>');
+}
+
+table.sessions tbody tr[data-shift="in-out"] td:last-child::after {
+  height: 100%;
+  top: 0;
+  -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 14 40" xmlns="http://www.w3.org/2000/svg"><path d="M 12,0 V 40 M 0,20 H 12" fill="none" stroke="black" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>');
+  mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 14 40" xmlns="http://www.w3.org/2000/svg"><path d="M 12,0 V 40 M 0,20 H 12" fill="none" stroke="black" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>');
+}
+
+table.sessions.reverse-shifts {
+  & tbody tr[data-shift="out"] td:last-child::after {
+    height: 50%;
+    bottom: 0;
+    top: auto;
+    -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 14 20" xmlns="http://www.w3.org/2000/svg"><path d="M 0,2 H 8 A 4,4 0 0 1 12,6 V 20" fill="none" stroke="black" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>');
+    mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 14 20" xmlns="http://www.w3.org/2000/svg"><path d="M 0,2 H 8 A 4,4 0 0 1 12,6 V 20" fill="none" stroke="black" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>');
+  }
+
+  & tbody tr[data-shift="in"] td:last-child::after {
+    height: 50%;
+    top: 0;
+    -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 14 20" xmlns="http://www.w3.org/2000/svg"><path d="M 0,18 H 8 A 4,4 0 0 0 12,14 V 0" fill="none" stroke="black" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>');
+    mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 14 20" xmlns="http://www.w3.org/2000/svg"><path d="M 0,18 H 8 A 4,4 0 0 0 12,14 V 0" fill="none" stroke="black" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>');
+  }
+  & tbody tr[data-shift="in"],
+  & tbody tr[data-shift="in-out"] {
+    border-top: 1px solid rgba(var(--primary-color) / 0.2);
+  }
+
+  & tbody tr[data-shift="out"],
+  & tbody tr[data-shift="in-out"] {
+    border-bottom: 1px solid rgba(var(--primary-color) / 0.2);
+    border-bottom-style: dashed;
+  }
+}

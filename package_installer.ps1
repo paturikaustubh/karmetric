@@ -26,9 +26,28 @@ Write-Host "Building Projects..." -ForegroundColor Yellow
 Write-Host "  - ActivityMonitor.Background..."
 dotnet publish "$ScriptDir\ActivityMonitor.Background\ActivityMonitor.Background.csproj" -c Release -r win-x64 --self-contained false -o (Join-Path $PayloadDir "Background") /p:Version=$Version | Out-Null
 
-# UI (To Payload/UI)
-Write-Host "  - ActivityMonitor.UI..."
-dotnet publish "$ScriptDir\ActivityMonitor.UI\ActivityMonitor.UI.csproj" -c Release -r win-x64 --self-contained false -o (Join-Path $PayloadDir "UI") /p:Version=$Version | Out-Null
+# Web (React SPA)
+Write-Host "  - ActivityMonitor.Web (React)..."
+Push-Location "$ScriptDir\ActivityMonitor.Web"
+try {
+    # Check if node_modules exists to save time? No, safer to ensure install
+    # Use cmd /c for npm to avoid powershell parsing issues
+    cmd /c "npm install"
+    cmd /c "npm run build"
+}
+finally {
+    Pop-Location
+}
+
+# Copy Web Assets (To Payload/Background/wwwroot)
+$WebDist = Join-Path $ScriptDir "ActivityMonitor.Web\dist"
+$WebTarget = Join-Path $PayloadDir "Background\wwwroot"
+New-Item -ItemType Directory -Path $WebTarget | Out-Null
+if (Test-Path $WebDist) {
+    Copy-Item "$WebDist\*" $WebTarget -Recurse -Force
+} else {
+    Write-Error "Web build failed! 'dist' folder not found."
+}
 
 # Uninstaller (To Payload Root)
 Write-Host "  - ActivityMonitor.Uninstaller..."
@@ -42,13 +61,6 @@ if (Test-Path $LogoSource) {
 
 # Copy monitor.json (To Payload Root)
 Copy-Item (Join-Path $ScriptDir "monitor.json") (Join-Path $PayloadDir "monitor.json")
-
-# Copy Frontend Assets (To Payload/application)
-$AppSource = Join-Path $ScriptDir "ActivityMonitor.UI\application"
-$AppDest = Join-Path $PayloadDir "application"
-if (Test-Path $AppSource) {
-    Copy-Item $AppSource $AppDest -Recurse -Force
-}
 
 # 3. Create Payload.zip
 Write-Host "Creating payload.zip..." -ForegroundColor Yellow

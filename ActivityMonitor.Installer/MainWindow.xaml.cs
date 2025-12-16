@@ -93,16 +93,7 @@ namespace ActivityMonitor.Installer
 
                 string repoRoot = tempFolder; // Simulating the root
                 string bgSource = Path.Combine(repoRoot, "Background");
-                string uiSource = Path.Combine(repoRoot, "UI");
-                
-                // Debug Check
-                if (!Directory.Exists(uiSource))
-                {
-                    var dirs = Directory.GetDirectories(repoRoot);
-                    throw new DirectoryNotFoundException($"Extraction failed. 'UI' folder missing in {repoRoot}. Found: {string.Join(", ", dirs)}");
-                }
-                string appSource = Path.Combine(repoRoot, "application");
-                string logoSource = Path.Combine(repoRoot, "logo.svg");
+                // UI Source and App Source removed in Headless/Web architecture
 
                 // Read Version from monitor.json in extracted payload
                 string version = "1.0.0"; // Fallback
@@ -112,8 +103,6 @@ namespace ActivityMonitor.Installer
                     if (File.Exists(jsonPath))
                     {
                         var json = File.ReadAllText(jsonPath);
-                        // Simple regex parse to avoid JSON dependency if not needed, or dynamic
-                        // But we can just use dynamic or string search for simplicity in .NET 4.8 without Newtonsoft
                         int idx = json.IndexOf("\"version\":");
                         if (idx != -1)
                         {
@@ -130,24 +119,29 @@ namespace ActivityMonitor.Installer
                 string targetDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ActivityMonitor");
 
                 UpdateStatus("Stopping existing processes...");
+
+                // Attempt Graceful Session End via API
+                try 
+                {
+                    UpdateStatus("Ending current session...");
+                    using (var client = new System.Net.WebClient())
+                    {
+                        client.UploadString("http://localhost:2369/api/activity/end-session?reason=Installer+Update", "POST", "");
+                    }
+                    System.Threading.Thread.Sleep(1000); // Wait for DB write
+                }
+                catch 
+                {
+                    // Ignore if service not running or call fails
+                }
+
                 KillProcess("ActivityMonitor.Background");
-                KillProcess("ActivityMonitor.UI");
+                KillProcess("ActivityMonitor.UI"); // Restored for cleanup
                 System.Threading.Thread.Sleep(2000);
 
                 UpdateStatus("Copying Core Files...");
                 CopyDirectory(bgSource, targetDir);
-                CopyDirectory(uiSource, targetDir);
-
-                UpdateStatus("Copying Frontend Assets...");
-                string targetAppDir = Path.Combine(targetDir, "application");
-                if (Directory.Exists(targetAppDir)) Directory.Delete(targetAppDir, true);
-                CopyDirectory(appSource, targetAppDir);
-                
-                // Copy Logo (SVG) for UI use
-                if (File.Exists(logoSource))
-                {
-                    File.Copy(logoSource, Path.Combine(targetAppDir, "logo.svg"), true);
-                }
+                // CopyDirectory(uiSource, targetDir); // Removed
 
                 UpdateStatus("Configuring Settings...");
                 string appSettingsPath = Path.Combine(targetDir, "appsettings.json");
@@ -167,6 +161,7 @@ namespace ActivityMonitor.Installer
                 
                 // Clean up all existing startup registrations to prevent duplicates
                 CleanupExistingStartupEntries();
+                CleanupLegacyUI(targetDir); // NEW: Remove old Folder/Shortcuts
                 
                 UpdateStatus("Registering Auto-Start...");
                 // Add to Startup Folder only (not registry to avoid duplicates)
@@ -184,18 +179,18 @@ namespace ActivityMonitor.Installer
                 
                 UpdateStatus("Creating Shortcuts...");
                 
-                // 1. Desktop Shortcut (User Option)
+                // 1. Desktop Shortcut (Web Link)
                 if (createDesktop)
                 {
-                    CreateShortcut("Activity Monitor", Path.Combine(targetDir, "ActivityMonitor.UI.exe"), Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory));
+                    CreateUrlShortcut("Activity Monitor", "http://localhost:2369", Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), bgExe);
                 }
 
-                // 2. Start Menu Shortcuts (Required for Pin/Search/Uninstall)
+                // 2. Start Menu Shortcuts (Web Link)
                 string programsDir = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
                 string appStartMenuDir = Path.Combine(programsDir, "Activity Monitor");
                 if (!Directory.Exists(appStartMenuDir)) Directory.CreateDirectory(appStartMenuDir);
 
-                CreateShortcut("Activity Monitor", Path.Combine(targetDir, "ActivityMonitor.UI.exe"), appStartMenuDir);
+                CreateUrlShortcut("Activity Monitor", "http://localhost:2369", appStartMenuDir, bgExe);
                 
                 // Copy Uninstaller files (Robust Search)
                 // Search recursively in case user put it in a subfolder
@@ -303,7 +298,8 @@ namespace ActivityMonitor.Installer
             try 
             {
                 string link = Path.Combine(destDir, name + ".lnk");
-                string script = $"$s=(New-Object -COM WScript.Shell).CreateShortcut('{link}');$s.TargetPath='{target}';$s.IconLocation='{target},0';$s.Save()";
+                string workingDir = Path.GetDirectoryName(target);
+                string script = $"$s=(New-Object -COM WScript.Shell).CreateShortcut('{link}');$s.TargetPath='{target}';$s.WorkingDirectory='{workingDir}';$s.IconLocation='{target},0';$s.Save()";
                 
                 // Assuming .ico is next to .exe? No, checking logic.
                 // We copied ActivityMonitor.ico to targetDir.
@@ -359,6 +355,46 @@ namespace ActivityMonitor.Installer
 
 
 
+        private void CleanupLegacyUI(string installDir)
+        {
+            try
+            {
+                // 1. Delete Legacy UI Folder
+                string uiDir = Path.Combine(installDir, "ActivityMonitor.UI");
+                if (Directory.Exists(uiDir))
+                {
+                    UpdateStatus("Removing legacy UI files...");
+                    Directory.Delete(uiDir, true);
+                }
+
+                // 2. Delete Legacy Desktop Shortcut (.lnk)
+                // The new one is .url, so we want to ensure the old .lnk is gone to avoid duplicates
+                string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                string legacyLnk = Path.Combine(desktop, "Activity Monitor.lnk");
+                if (File.Exists(legacyLnk))
+                {
+                    File.Delete(legacyLnk);
+                }
+
+                // 3. Delete Legacy Start Menu Shortcut (.lnk)
+                string programsDir = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
+                string appStartCtx = Path.Combine(programsDir, "Activity Monitor");
+                if (Directory.Exists(appStartCtx))
+                {
+                    string legacyStartLnk = Path.Combine(appStartCtx, "Activity Monitor.lnk");
+                    if (File.Exists(legacyStartLnk))
+                    {
+                        File.Delete(legacyStartLnk);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Non-critical
+                Console.WriteLine($"Cleanup Warning: {ex.Message}");
+            }
+        }
+
         private void RegisterUninstaller(string installDir, string version)
         {
             try
@@ -372,7 +408,7 @@ namespace ActivityMonitor.Installer
                         if (key != null)
                         {
                             string uninstallerPath = Path.Combine(installDir, "ActivityMonitor.Uninstaller.exe");
-                            string iconPath = Path.Combine(installDir, "ActivityMonitor.UI.exe"); // Use UI icon
+                            string iconPath = Path.Combine(installDir, "ActivityMonitor.Background.exe"); // Use Background icon
 
                             key.SetValue("DisplayName", "Activity Monitor");
                             key.SetValue("ApplicationVersion", version);
@@ -398,5 +434,21 @@ namespace ActivityMonitor.Installer
         {
             Application.Current.Shutdown();
         }
+        private void CreateUrlShortcut(string name, string url, string destDir, string iconPath)
+        {
+            try
+            {
+                string path = Path.Combine(destDir, name + ".url");
+                using (StreamWriter writer = new StreamWriter(path))
+                {
+                    writer.WriteLine("[InternetShortcut]");
+                    writer.WriteLine("URL=" + url);
+                    writer.WriteLine("IconIndex=0");
+                    writer.WriteLine("IconFile=" + iconPath);
+                }
+            }
+            catch { }
+        }
+
     }
 }

@@ -109,20 +109,36 @@ namespace ActivityMonitor.Background.Services
             };
         }
 
-        public async Task<(IEnumerable<SessionDto> Data, int TotalItems)> GetRecentSessions(int page = 1, int pageSize = 10, bool includeActive = false)
+        public async Task<(IEnumerable<SessionDto> Data, int TotalItems)> GetRecentSessions(int page = 1, int pageSize = 10, bool includeActive = false, string date = null)
         {
             using var conn = new SQLiteConnection(_connectionString);
-            string whereClause = includeActive ? "" : "WHERE EndTime IS NOT NULL";
             
+            var conditions = new List<string>();
+            var p = new DynamicParameters();
+            
+            if (!includeActive) conditions.Add("EndTime IS NOT NULL");
+            
+            if (!string.IsNullOrEmpty(date))
+            {
+                // Filter by specific day (ISO YYYY-MM-DD matches StartTime string starts with...)
+                conditions.Add("StartTime LIKE @DateLike");
+                p.Add("DateLike", $"{date}%");
+            }
+
+            var whereClause = conditions.Any() ? "WHERE " + string.Join(" AND ", conditions) : "";
+
             // Count Query
             var countSql = $"SELECT COUNT(*) FROM Sessions {whereClause}";
-            var totalItems = await conn.ExecuteScalarAsync<int>(countSql);
+            var totalItems = await conn.ExecuteScalarAsync<int>(countSql, p);
             
             // Data Query
             var offset = (page - 1) * pageSize;
-            var dataSql = $@"SELECT * FROM Sessions {whereClause} ORDER BY Id DESC LIMIT @Limit OFFSET @Offset";
+            p.Add("Limit", pageSize);
+            p.Add("Offset", offset);
             
-            var sessions = await conn.QueryAsync<Session>(dataSql, new { Limit = pageSize, Offset = offset });
+            var dataSql = $@"SELECT * FROM Sessions {whereClause} ORDER BY StartTime DESC LIMIT @Limit OFFSET @Offset";
+            
+            var sessions = await conn.QueryAsync<Session>(dataSql, p);
 
             return (sessions.Select(s => MapToDto(s)), totalItems);
         }
@@ -175,12 +191,22 @@ namespace ActivityMonitor.Background.Services
         public async Task<WeekSummary> GetWeeklySummary()
         {
             using var conn = new SQLiteConnection(_connectionString);
-            // Get last 7 days
-            var today = DateTime.Today;
-            var startOfWeek = today.AddDays(-6);
-            var sql = @"SELECT * FROM Sessions WHERE StartTime >= @StartOfWeek";
             
-            var sessions = await conn.QueryAsync<Session>(sql, new { StartOfWeek = startOfWeek.ToString("o") });
+            var today = DateTime.Today;
+            // Get Start of week (Sunday)
+            var diff = today.DayOfWeek - DayOfWeek.Sunday;
+            if (diff < 0) diff += 7;
+            var startOfWeek = today.AddDays(-diff).Date;
+            
+            // Get week range (Sun - Sat)
+            var endOfWeek = startOfWeek.AddDays(7); // < EndOfWeek
+
+            var sql = @"SELECT * FROM Sessions WHERE StartTime >= @StartOfWeek AND StartTime < @EndOfWeek";
+            
+            var sessions = await conn.QueryAsync<Session>(sql, new { 
+                StartOfWeek = startOfWeek.ToString("o"), 
+                EndOfWeek = endOfWeek.ToString("o") 
+            });
             
             var chartData = new List<ChartDataPoint>();
             var totalDurationSeconds = 0L;
@@ -195,7 +221,7 @@ namespace ActivityMonitor.Background.Services
                 var ts = TimeSpan.FromSeconds(daySeconds);
                 chartData.Add(new ChartDataPoint
                 {
-                    AxisLabel = date.ToString("ddd"), // "Mon"
+                    AxisLabel = date.ToString("ddd"), // "Sun", "Mon"...
                     Value = Math.Round(ts.TotalHours, 1),
                     Label = $"{(int)ts.TotalHours}h {ts.Minutes}m"
                 });
@@ -246,5 +272,151 @@ namespace ActivityMonitor.Background.Services
             
             return session.StartTime;
         }
+
+        public async Task<(IEnumerable<DaySummaryDto> Data, int TotalItems)> GetDailySummaries(int page = 1, int pageSize = 10)
+        {
+            using var conn = new SQLiteConnection(_connectionString);
+            
+            // 1. Get Distinct Days Count
+            var countSql = "SELECT COUNT(DISTINCT substr(StartTime, 1, 10)) FROM Sessions";
+            var totalItems = await conn.ExecuteScalarAsync<int>(countSql);
+
+            // 2. Get Page of Days
+            var offset = (page - 1) * pageSize;
+            var daysSql = @"SELECT DISTINCT substr(StartTime, 1, 10) as DayStr
+                            FROM Sessions 
+                            ORDER BY DayStr DESC 
+                            LIMIT @Limit OFFSET @Offset";
+            
+            var pagedDays = (await conn.QueryAsync<string>(daysSql, new { Limit = pageSize, Offset = offset })).ToList();
+
+            if (!pagedDays.Any()) return (Enumerable.Empty<DaySummaryDto>(), totalItems);
+
+            // 3. Get Sessions for these days
+            var sessionsSql = "SELECT * FROM Sessions WHERE substr(StartTime, 1, 10) IN @Days ORDER BY StartTime ASC";
+            var sessions = await conn.QueryAsync<Session>(sessionsSql, new { Days = pagedDays });
+
+            // 4. Group
+            var grouped = sessions
+                .GroupBy(s => DateTime.Parse(s.StartTime).Date)
+                .OrderByDescending(g => g.Key)
+                .Select(g => 
+                {
+                    var date = g.Key;
+                    var daySessions = g.ToList();
+                    var totalSeconds = daySessions.Sum(s => s.DurationSeconds);
+                    var ts = TimeSpan.FromSeconds(totalSeconds);
+                    
+                    var firstSession = daySessions.First();
+                    var lastSession = daySessions.Last();
+
+                    var dayShiftedIn = firstSession.StartReason == "Shifting In";
+                    var dayShiftedOut = lastSession.EndReason == "Shifting Out";
+                    
+                    string dataShift = null;
+                    if (dayShiftedIn && dayShiftedOut) dataShift = "in-out";
+                    else if (dayShiftedIn) dataShift = "in";
+                    else if (dayShiftedOut) dataShift = "out";
+
+                    return new DaySummaryDto
+                    {
+                        DateIso = date.ToString("yyyy-MM-dd"),
+                        Date = date.ToString("d MMM, yy"),
+                        Day = date.ToString("dddd"),
+                        TotalDuration = $"{(int)ts.TotalHours}h {ts.Minutes}m",
+                        SessionCount = daySessions.Count,
+                        DataShift = dataShift
+                    };
+                });
+
+            return (grouped, totalItems);
+        }
+
+        public async Task<object> GetDayDetails(string dateIso, int page = 1, int pageSize = 10)
+        {
+            if (!DateTime.TryParse(dateIso, out var date)) return null;
+
+            using var conn = new SQLiteConnection(_connectionString);
+            
+            var startOfDay = date.Date;
+            var endOfDay = date.Date.AddDays(1);
+            var startStr = startOfDay.ToString("o");
+            var endStr = endOfDay.ToString("o");
+
+            // 1. Aggregation Query for Summary Metadata (Count, Duration, First/Last Reason)
+            var statsSql = @"
+                SELECT 
+                    COUNT(*) as Count, 
+                    SUM(DurationSeconds) as Duration,
+                    (SELECT StartReason FROM Sessions WHERE StartTime >= @Start AND StartTime < @End ORDER BY StartTime ASC LIMIT 1) as FirstReason,
+                    (SELECT EndReason FROM Sessions WHERE StartTime >= @Start AND StartTime < @End ORDER BY StartTime DESC LIMIT 1) as LastReason
+                FROM Sessions 
+                WHERE StartTime >= @Start AND StartTime < @End";
+
+            var stats = await conn.QuerySingleOrDefaultAsync<dynamic>(statsSql, new { Start = startStr, End = endStr });
+
+            if (stats == null || (long)stats.Count == 0) return null;
+
+            var totalItems = (int)stats.Count;
+            var durationSeconds = (stats.Duration != null) ? (long)stats.Duration : 0;
+            var ts = TimeSpan.FromSeconds(durationSeconds);
+
+            var dayShiftedIn = (string)stats.FirstReason == "Shifting In";
+            var dayShiftedOut = (string)stats.LastReason == "Shifting Out";
+
+            string dataShift = null;
+            if (dayShiftedIn && dayShiftedOut) dataShift = "in-out";
+            else if (dayShiftedIn) dataShift = "in";
+            else if (dayShiftedOut) dataShift = "out";
+
+            var summary = new DaySummaryDto
+            {
+                DateIso = date.ToString("yyyy-MM-dd"),
+                Date = date.ToString("d MMM, yy"),
+                Day = date.ToString("dddd"),
+                TotalDuration = $"{(int)ts.TotalHours}h {ts.Minutes}m",
+                SessionCount = totalItems,
+                DataShift = dataShift
+            };
+
+            // 2. Paginated Grid Data
+            var offset = (page - 1) * pageSize;
+            var gridSql = @"SELECT * FROM Sessions 
+                            WHERE StartTime >= @Start AND StartTime < @End 
+                            ORDER BY StartTime ASC 
+                            LIMIT @Limit OFFSET @Offset";
+
+            var sessions = await conn.QueryAsync<Session>(gridSql, new { 
+                Start = startStr, 
+                End = endStr,
+                Limit = pageSize,
+                Offset = offset
+            });
+
+            var gridDetails = sessions.Select(s => MapToDto(s)).ToList();
+            var totalPages = (int)System.Math.Ceiling((double)totalItems / pageSize);
+
+            return new 
+            {
+                summary = summary,
+                sessions = new {
+                    data = gridDetails,
+                    page = page,
+                    pageSize = pageSize,
+                    totalItems = totalItems,
+                    totalPages = totalPages
+                }
+            };
+        }
+    }
+
+    public class DaySummaryDto
+    {
+        public string DateIso { get; set; }
+        public string Date { get; set; }
+        public string Day { get; set; }
+        public string TotalDuration { get; set; }
+        public int SessionCount { get; set; }
+        public string DataShift { get; set; } // "in", "out", "in-out"
     }
 }

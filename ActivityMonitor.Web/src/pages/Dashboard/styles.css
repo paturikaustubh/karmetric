@@ -1,0 +1,10 @@
+.weekly-summary {
+  grid-column: 1 / -1;
+}
+.card-title {
+  &.recent-sessions,
+  &.weekly-summary {
+    display: flex;
+    justify-content: space-between;
+  }
+}

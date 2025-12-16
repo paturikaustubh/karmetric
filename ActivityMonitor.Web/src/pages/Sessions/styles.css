@@ -1,0 +1,39 @@
+.page-title-left {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+
+.layout-buttons {
+  display: flex;
+
+  button {
+    &:hover {
+      background-color: rgba(var(--accent-color) / 0.05);
+    }
+
+    &.active {
+      background-color: rgba(var(--accent-color) / 0.05);
+    }
+  }
+}
+
+.days-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.5em;
+
+  .card {
+    border-radius: var(--border-radius);
+
+    .card-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      span.day {
+        font-weight: normal;
+      }
+    }
+  }
+}

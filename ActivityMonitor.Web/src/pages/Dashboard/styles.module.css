@@ -1,0 +1,32 @@
+.content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0.3em;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  &:nth-child(1) {
+    border-top-left-radius: var(--border-radius);
+  }
+
+  /* Top-Right: Second item */
+  &:nth-child(2) {
+    border-top-right-radius: var(--border-radius);
+  }
+
+  /* Bottom-Left: Last item if odd (spans or alone) OR 2nd to last if even (full row) */
+  &:last-child:nth-child(odd),
+  &:nth-last-child(2):nth-child(odd) {
+    border-bottom-left-radius: var(--border-radius);
+  }
+
+  /* Bottom-Right: Last item always catches the right corner in this 2-col flow 
+             (Either it's pos 4 (even) or pos 3 spans (odd)) */
+  &:last-child {
+    border-bottom-right-radius: var(--border-radius);
+  }
+}
