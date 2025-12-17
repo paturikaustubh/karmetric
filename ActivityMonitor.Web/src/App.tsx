@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Sessions from "./pages/Sessions/Sessions";
 import Navbar from "./components/ui/Navbar";
@@ -12,7 +12,11 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/sessions" element={<Sessions />} />
+          <Route
+            path="/sessions"
+            element={<Navigate to="/sessions/grid" replace />}
+          />
+          <Route path="/sessions/:layoutStr" element={<Sessions />} />
           <Route path="/sessions/days/:day-iso" element={<DaySessions />} />
           {/* Simple 404 / Redirect */}
           <Route path="*" element={<NotFoundPage />} />

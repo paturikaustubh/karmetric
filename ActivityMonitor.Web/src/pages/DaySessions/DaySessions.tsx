@@ -6,19 +6,13 @@ import useDaySessions from "../../hooks/useDaySessions";
 import "./styles.css";
 
 export default function DaySessions() {
-  const {
-    loading,
-    sessions,
-    pagination,
-    handlePageChange,
-    handlePageSizeChange,
-  } = useDaySessions();
+  const { loading, sessions, summary, pagination } = useDaySessions();
   const columns: Column<SessionRecord>[] = [
     {
       header: "S No.",
       key: "sno",
       render: (_: SessionRecord, index: number) => {
-        const startIndex = (pagination.page - 1) * pagination.pageSize;
+        const startIndex = (pagination.currentPage - 1) * pagination.pageSize;
         return <span>{startIndex + index + 1}</span>;
       },
       className: "sno",
@@ -39,12 +33,15 @@ export default function DaySessions() {
       <LoadingScreen isOpen={loading} />
       <section className="page-title">
         <div className="page-title-left">
-          <Link to="/sessions">
+          <Link to="/sessions/days">
             <button>
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
           </Link>
-          <h2>Sessions</h2>
+          <h2>{summary && `${summary.date} - ${summary.day}`}</h2>
+        </div>
+        <div className="page-title-right">
+          <h2>{summary && `${summary.totalDuration}`}</h2>
         </div>
       </section>
       <section className="content">
@@ -53,13 +50,7 @@ export default function DaySessions() {
           columns={columns}
           data={sessions}
           showPaginator={true}
-          pagination={{
-            currentPage: pagination.page,
-            totalPages: pagination.totalPages,
-            pageSize: pagination.pageSize,
-            onPageChange: handlePageChange,
-            onPageSizeChange: handlePageSizeChange,
-          }}
+          pagination={pagination}
           getRowProps={(item) =>
             ({
               "data-shift": item.dataShift,

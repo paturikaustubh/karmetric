@@ -16,13 +16,7 @@ interface TableProps<T> {
   keyExtractor?: (item: T, index: number) => string | number;
   showPaginator?: boolean;
   // Paginator props
-  pagination?: {
-    currentPage: number;
-    totalPages: number;
-    pageSize: number;
-    onPageChange: (page: number) => void;
-    onPageSizeChange: (size: number) => void;
-  };
+  pagination?: PaginatorProps;
   reverseShifts?: boolean;
   // Special prop for the Session "Shift" visualization
   getRowProps?: (item: T) => React.HTMLAttributes<HTMLTableRowElement>;
@@ -73,6 +67,7 @@ function Table<T>({
         <Paginator
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
           pageSize={pagination.pageSize}
           onPageChange={pagination.onPageChange}
           onPageSizeChange={pagination.onPageSizeChange}

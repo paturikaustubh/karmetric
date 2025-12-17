@@ -10,11 +10,23 @@ export default function useDaySessions() {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<DaySummary | null>(null);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
-  const [pagination, setPagination] = useState({
-    page: 1,
+  const [pagination, setPagination] = useState<PaginatorProps>({
+    currentPage: 1,
     pageSize: 10,
     totalPages: 1,
+    totalItems: 0,
+    onPageChange: () => {},
+    onPageSizeChange: () => {},
   });
+
+  // FUNCTIONS
+  const handlePageChange = (page: number) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+  };
+
+  const handlePageSizeChange = (pageSize: number) => {
+    setPagination((prev) => ({ ...prev, pageSize, currentPage: 1 }));
+  };
 
   // CALLBACKS
   const fetchDaySessions = useCallback(
@@ -28,9 +40,12 @@ export default function useDaySessions() {
         setSummary(data.summary);
         setSessions(data.sessions.data);
         setPagination({
-          page: data.sessions.page,
+          currentPage: data.sessions.page,
           pageSize: data.sessions.pageSize,
           totalPages: data.sessions.totalPages,
+          totalItems: data.sessions.totalItems,
+          onPageChange: handlePageChange,
+          onPageSizeChange: handlePageSizeChange,
         });
       } catch (error) {
         console.error("Failed to fetch day sessions", error);
@@ -41,26 +56,15 @@ export default function useDaySessions() {
     [dayIso]
   );
 
-  // FUNCTIONS
-  const handlePageChange = (page: number) => {
-    setPagination((prev) => ({ ...prev, page }));
-  };
-
-  const handlePageSizeChange = (pageSize: number) => {
-    setPagination((prev) => ({ ...prev, pageSize, page: 1 }));
-  };
-
   // EFFECTS
   useEffect(() => {
-    fetchDaySessions(pagination.page, pagination.pageSize);
-  }, [dayIso, fetchDaySessions, pagination.page, pagination.pageSize]);
+    fetchDaySessions(pagination.currentPage, pagination.pageSize);
+  }, [dayIso, fetchDaySessions, pagination.currentPage, pagination.pageSize]);
 
   return {
     loading,
     summary,
     sessions,
     pagination,
-    handlePageChange,
-    handlePageSizeChange,
   };
 }

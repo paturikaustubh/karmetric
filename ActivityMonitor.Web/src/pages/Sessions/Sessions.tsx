@@ -11,23 +11,15 @@ import {
 } from "../../components/ui/card";
 
 const Sessions: React.FC = () => {
-  const {
-    gridData,
-    dayData,
-    loading,
-    pagination,
-    layout,
-    handlePageChange,
-    handlePageSizeChange,
-    handleLayoutChange,
-  } = useSessions();
+  const { gridData, dayData, loading, pagination, layout, handleLayoutChange } =
+    useSessions();
 
   const columns: Column<SessionRecord>[] = [
     {
       header: "S No.",
       key: "sno",
       render: (_: SessionRecord, index: number) => {
-        const startIndex = (pagination.page - 1) * pagination.pageSize;
+        const startIndex = (pagination.currentPage - 1) * pagination.pageSize;
         return <span>{startIndex + index + 1}</span>;
       },
       className: "sno",
@@ -76,13 +68,7 @@ const Sessions: React.FC = () => {
             columns={columns}
             data={gridData}
             showPaginator={true}
-            pagination={{
-              currentPage: pagination.page,
-              totalPages: pagination.totalPages,
-              pageSize: pagination.pageSize,
-              onPageChange: handlePageChange,
-              onPageSizeChange: handlePageSizeChange,
-            }}
+            pagination={pagination}
             getRowProps={(item) =>
               ({
                 "data-shift": item.dataShift,
@@ -92,8 +78,8 @@ const Sessions: React.FC = () => {
         ) : (
           <div className="days-cards">
             {dayData.map((day) => (
-              <Link to={`/sessions/days/${day.dateIso}`}>
-                <Card key={day.dateIso} className={`day-card ${day.dataShift}`}>
+              <Link to={`/sessions/days/${day.dateIso}`} key={day.dateIso}>
+                <Card className={`day-card ${day.dataShift}`}>
                   <CardTitle>
                     <span>{day.date}</span>
                     <span className="day">{day.day}</span>

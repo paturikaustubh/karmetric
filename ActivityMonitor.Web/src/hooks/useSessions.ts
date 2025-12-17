@@ -1,16 +1,26 @@
 import { useCallback, useEffect, useState } from "react";
 import { API_URL } from "../constants";
+import { useParams, useNavigate } from "react-router-dom";
 
 export default function useSessions() {
+  const { layoutStr } = useParams<{ layoutStr: string }>();
+  const navigate = useNavigate();
+
+  const layout: SessionsLayout = (
+    layoutStr === "days" ? "days" : "grid"
+  ) as SessionsLayout;
+
   const [gridData, setGridData] = useState<SessionRecord[]>([]);
   const [dayData, setDayData] = useState<DaySummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    page: 1,
+  const [pagination, setPagination] = useState<PaginatorProps>({
+    currentPage: 1,
     pageSize: 10,
     totalPages: 1,
+    totalItems: 0,
+    onPageChange: () => {},
+    onPageSizeChange: () => {},
   });
-  const [layout, setLayout] = useState<SessionsLayout>("grid");
 
   // CALLBACKS
   const fetchSessions = useCallback(
@@ -28,9 +38,12 @@ export default function useSessions() {
           setGridData(json.data);
         }
         setPagination({
-          page: json.page,
+          currentPage: json.page,
           pageSize: json.pageSize,
           totalPages: json.totalPages,
+          totalItems: json.totalItems,
+          onPageChange: handlePageChange,
+          onPageSizeChange: handlePageSizeChange,
         });
       } catch (error) {
         console.error("Failed to fetch sessions", error);
@@ -43,22 +56,22 @@ export default function useSessions() {
 
   // ANCHOR: METHODS
   const handlePageChange = (page: number) => {
-    setPagination((prev) => ({ ...prev, page }));
+    setPagination((prev) => ({ ...prev, currentPage: page }));
   };
 
   const handlePageSizeChange = (pageSize: number) => {
-    setPagination((prev) => ({ ...prev, pageSize, page: 1 }));
+    setPagination((prev) => ({ ...prev, pageSize, currentPage: 1 }));
   };
 
-  const handleLayoutChange = (layout: SessionsLayout) => {
-    setLayout(layout);
+  const handleLayoutChange = (newLayout: SessionsLayout) => {
+    navigate(`/sessions/${newLayout}`);
   };
 
   // ANCHOR: EFFECTS
 
   useEffect(() => {
-    fetchSessions(pagination.page, pagination.pageSize);
-  }, [fetchSessions, pagination.page, pagination.pageSize]);
+    fetchSessions(pagination.currentPage, pagination.pageSize);
+  }, [fetchSessions, pagination.currentPage, pagination.pageSize]);
 
   return {
     gridData,
@@ -66,8 +79,6 @@ export default function useSessions() {
     loading,
     pagination,
     layout,
-    handlePageChange,
-    handlePageSizeChange,
     handleLayoutChange,
   };
 }

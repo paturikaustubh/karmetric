@@ -47,3 +47,12 @@ interface DayDetailsResponse {
     totalItems: number;
   };
 }
+
+interface PaginatorProps {
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
+}
