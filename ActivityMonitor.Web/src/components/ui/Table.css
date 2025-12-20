@@ -111,6 +111,8 @@ table.sessions.reverse-shifts {
   & tbody tr[data-shift="in"],
   & tbody tr[data-shift="in-out"] {
     border-top: 1px solid rgba(var(--primary-color) / 0.2);
+    border-top-style: dashed;
+    border-bottom: 1px solid rgba(var(--primary-color) / 0.3);
   }
 
   & tbody tr[data-shift="out"],

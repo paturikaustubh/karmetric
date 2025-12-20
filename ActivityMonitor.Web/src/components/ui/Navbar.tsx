@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router";
 
 const Navbar: React.FC = () => {
   return (
@@ -14,9 +15,10 @@ const Navbar: React.FC = () => {
             fontFamily: '"Roboto Condensed", sans-serif',
             fontSize: "2.5em",
             marginBlock: "0.4em",
+            width: "fit-content",
           }}
         >
-          Activity Monitor
+          <Link to="/">Activity Monitor</Link>
         </h1>
       </div>
     </nav>
