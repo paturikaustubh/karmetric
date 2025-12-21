@@ -21,10 +21,81 @@
 .days-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 0.5em;
+  --card-gap: 0.5em;
+  gap: var(--card-gap);
 
   .card {
+    --card-border-width: 2px;
+    border: var(--card-border-width) solid rgba(var(--primary-color) / 0.2);
     border-radius: var(--border-radius);
+
+    --connector-width: calc(var(--card-gap) / 2);
+    --connector-color: rgba(var(--primary-color) / 0.5);
+    --connector-right-offset: calc(
+      ((var(--card-gap) / 2) + var(--card-border-width)) * -1
+    );
+    --connector-left-offset: calc(var(--card-border-width) * -3);
+    --connector-top-offset: 50%;
+    --connector-height: 2px;
+
+    &[data-shift="in"] {
+      border-right: var(--card-border-width) solid
+        rgba(var(--primary-color) / 0.1);
+      border-right-style: dashed;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      position: relative;
+
+      &::after {
+        content: "";
+        position: absolute;
+        top: var(--connector-top-offset);
+        right: var(--connector-right-offset);
+        width: var(--connector-width);
+        height: var(--connector-height);
+        background-color: var(--connector-color);
+      }
+    }
+    &[data-shift="out"] {
+      border-left: 2px solid rgba(var(--primary-color) / 0.1);
+      border-left-style: dashed;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      position: relative;
+      &::before {
+        content: "";
+        position: absolute;
+        top: var(--connector-top-offset);
+        left: var(--connector-left-offset);
+        width: var(--connector-width);
+        height: var(--connector-height);
+        background-color: var(--connector-color);
+      }
+    }
+    &[data-shift="in-out"] {
+      border-inline: 2px solid rgba(var(--primary-color) / 0.1);
+      border-inline-style: dashed;
+      border-radius: 0;
+      position: relative;
+      &::before {
+        content: "";
+        position: absolute;
+        top: var(--connector-top-offset);
+        left: var(--connector-left-offset);
+        width: var(--connector-width);
+        height: var(--connector-height);
+        background-color: var(--connector-color);
+      }
+      &::after {
+        content: "";
+        position: absolute;
+        top: var(--connector-top-offset);
+        right: var(--connector-right-offset);
+        width: var(--connector-width);
+        height: var(--connector-height);
+        background-color: var(--connector-color);
+      }
+    }
 
     .card-title {
       display: flex;
@@ -33,6 +104,29 @@
 
       span.day {
         font-weight: normal;
+      }
+    }
+  }
+
+  button.load-more-days-button {
+    all: unset;
+    cursor: pointer;
+
+    .card.day-card {
+      height: 100%;
+      .card-body {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .content {
+          display: flex;
+          gap: 0.2em;
+          align-items: center;
+          scale: 1.5;
+        }
       }
     }
   }

@@ -221,7 +221,7 @@ namespace ActivityMonitor.Background.Services
                 var ts = TimeSpan.FromSeconds(daySeconds);
                 chartData.Add(new ChartDataPoint
                 {
-                    AxisLabel = date.ToString("ddd"), // "Sun", "Mon"...
+                    AxisLabel = $"{date:ddd}\n{date:d MMM, yy}",
                     Value = Math.Round(ts.TotalHours, 1),
                     Label = $"{(int)ts.TotalHours}h {ts.Minutes}m"
                 });

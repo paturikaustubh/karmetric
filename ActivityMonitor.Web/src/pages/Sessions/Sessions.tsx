@@ -79,7 +79,7 @@ const Sessions: React.FC = () => {
           <div className="days-cards">
             {dayData.map((day) => (
               <Link to={`/sessions/days/${day.dateIso}`} key={day.dateIso}>
-                <Card className={`day-card ${day.dataShift}`}>
+                <Card className="day-card" data-shift={day.dataShift}>
                   <CardTitle>
                     <span>{day.date}</span>
                     <span className="day">{day.day}</span>
@@ -97,6 +97,25 @@ const Sessions: React.FC = () => {
                 </Card>
               </Link>
             ))}
+            {dayData &&
+              pagination.currentPage * pagination.pageSize <
+                pagination.totalItems && (
+                <button
+                  className="load-more-days-button"
+                  onClick={() =>
+                    pagination.onPageChange(pagination.currentPage + 1)
+                  }
+                >
+                  <Card className="day-card">
+                    <CardBody>
+                      <strong className="content">
+                        <span className="material-symbols-outlined">add</span>
+                        <span>Load More</span>
+                      </strong>
+                    </CardBody>
+                  </Card>
+                </button>
+              )}
           </div>
         )}
       </section>
