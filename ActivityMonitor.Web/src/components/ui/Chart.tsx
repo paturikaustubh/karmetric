@@ -14,7 +14,6 @@ export default function BarChart({
   height = 340,
 }: BarChartProps) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const svgRef = useRef<SVGSVGElement | null>(null);
 
   const [size, setSize] = useState({ width: 600, height });
 
@@ -127,7 +126,10 @@ export default function BarChart({
   const w = Math.max(0, width - pad.left - pad.right);
   const h = Math.max(0, heightPx - pad.top - pad.bottom);
 
-  const maxVal = data.length ? Math.max(...data) : 1;
+  // Fix: Ensure maxVal is at least 4 to prevent duplicate ticks (0,0,1,1) for small values
+  const rawMax = data.length ? Math.max(...data) : 0;
+  const maxVal = Math.max(rawMax, 4);
+
   const avg = data.length ? data.reduce((a, b) => a + b, 0) / data.length : 0;
   const scaleY = (v: number) => (v / (maxVal || 1)) * h;
 
@@ -155,7 +157,6 @@ export default function BarChart({
   return (
     <div className="bc-wrap" ref={wrapRef} style={{ height: `${height}px` }}>
       <svg
-        ref={svgRef}
         className="bc-svg"
         viewBox={`0 0 ${width} ${heightPx}`}
         preserveAspectRatio="none"
@@ -205,7 +206,7 @@ export default function BarChart({
             const barHeight = scaleY(val);
             const x = sidePad + i * (barW + gap);
             const y = h - barHeight;
-            const r = 6;
+            const r = val === 0 ? 0 : 6;
             const d = [
               `M ${x},${y + barHeight}`,
               `L ${x},${y + r}`,
@@ -230,7 +231,18 @@ export default function BarChart({
                 />
 
                 <text x={x + barW / 2} y={h + 18} className="bc-x">
-                  {xAxisLabels[i] ?? String(i + 1)}
+                  {xAxisLabels[i]
+                    ? xAxisLabels[i].split(/\r?\n/).map((line, li) => (
+                        <tspan
+                          key={li}
+                          x={x + barW / 2}
+                          dy={li === 0 ? 0 : 14}
+                          className="bc-x-tspan"
+                        >
+                          {line}
+                        </tspan>
+                      ))
+                    : String(i + 1)}
                 </text>
               </g>
             );

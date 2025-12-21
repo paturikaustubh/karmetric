@@ -25,6 +25,10 @@
   text-anchor: middle;
 }
 
+.bc-x-tspan {
+  fill: #666;
+}
+
 .bc-y {
   font-size: 11px;
   fill: #999;
