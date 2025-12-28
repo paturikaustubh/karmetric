@@ -3,9 +3,13 @@ type DataShift = "in" | "out" | "in-out";
 interface SessionRecord {
   id: number;
   checkIn: string;
+  checkInDateIso: string;
   shiftOut: string;
+  shiftOutDateIso: string;
   shiftIn: string;
+  shiftInDateIso: string;
   checkout: string;
+  checkoutDateIso: string;
   duration: string;
   dataShift: DataShift;
 }

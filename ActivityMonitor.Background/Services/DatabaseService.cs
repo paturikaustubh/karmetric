@@ -162,9 +162,13 @@ namespace ActivityMonitor.Background.Services
                 Duration = durationStr,
                 // Default Mapping
                 CheckIn = start.ToString("d MMM, yy - HH:mm"),
+                CheckInDateIso = start.ToString("yyyy-MM-dd"),
                 Checkout = end.HasValue && s.EndReason != "Shifting Out" ? end.Value.ToString("d MMM, yy - HH:mm") : "-",
+                CheckoutDateIso = end.HasValue && s.EndReason != "Shifting Out" ? end.Value.ToString("yyyy-MM-dd") : null,
                 ShiftOut = s.EndReason == "Shifting Out" && end.HasValue ? end.Value.ToString("d MMM, yy - HH:mm") : "-",
-                ShiftIn = s.StartReason == "Shifting In" ? start.ToString("d MMM, yy - HH:mm") : "-"
+                ShiftOutDateIso = s.EndReason == "Shifting Out" && end.HasValue ? end.Value.ToString("yyyy-MM-dd") : null,
+                ShiftIn = s.StartReason == "Shifting In" ? start.ToString("d MMM, yy - HH:mm") : "-",
+                ShiftInDateIso = s.StartReason == "Shifting In" ? start.ToString("yyyy-MM-dd") : null
             };
 
             // Calculate DataShift for UI Brackets

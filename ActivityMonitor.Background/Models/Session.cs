@@ -16,9 +16,13 @@ namespace ActivityMonitor.Background.Models
     {
         public long Id { get; set; }
         public string CheckIn { get; set; }
+        public string? CheckInDateIso { get; set; }
         public string ShiftOut { get; set; }
+        public string? ShiftOutDateIso { get; set; }
         public string ShiftIn { get; set; }
+        public string? ShiftInDateIso { get; set; }
         public string Checkout { get; set; }
+        public string? CheckoutDateIso { get; set; }
         public string Duration { get; set; }
         public string DataShift { get; set; } // "in", "out", "in-out", ""
     }

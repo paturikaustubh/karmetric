@@ -11,6 +11,7 @@ import {
 } from "../../components/ui/card";
 import styles from "./styles.module.css";
 import "./styles.css";
+import TimeRender from "../../components/ui/TimeRender";
 
 const API_URL = "http://localhost:2369/api/activity";
 
@@ -119,9 +120,37 @@ const Dashboard: React.FC = () => {
   };
 
   // Recent Columns
-  const recentColumns: Column<any>[] = [
-    { header: "Check In", key: "checkIn", className: "check-in" },
-    { header: "Check Out", key: "checkout", className: "checkout" },
+  const recentColumns: Column<SessionRecord>[] = [
+    {
+      header: "Check In",
+      key: "checkIn",
+      className: "check-in",
+      render: (record: SessionRecord) =>
+        record.checkIn !== "-" ? (
+          <TimeRender
+            label={record.checkIn}
+            redirect={record.checkInDateIso}
+            key={record.checkInDateIso}
+          />
+        ) : (
+          ""
+        ),
+    },
+    {
+      header: "Check Out",
+      key: "checkout",
+      className: "checkout",
+      render: (record: SessionRecord) =>
+        record.checkout !== "-" ? (
+          <TimeRender
+            label={record.checkout}
+            redirect={record.checkoutDateIso}
+            key={record.checkoutDateIso}
+          />
+        ) : (
+          ""
+        ),
+    },
     { header: "Duration", key: "duration", className: "duration" },
   ];
 

@@ -9,6 +9,7 @@ import {
   CardFooter,
   CardTitle,
 } from "../../components/ui/card";
+import TimeRender from "../../components/ui/TimeRender";
 
 const Sessions: React.FC = () => {
   const { gridData, dayData, loading, pagination, layout, handleLayoutChange } =
@@ -24,10 +25,66 @@ const Sessions: React.FC = () => {
       },
       className: "sno",
     },
-    { header: "Check In", key: "checkIn", className: "check-in" },
-    { header: "Shift In", key: "shiftIn", className: "shift-in" },
-    { header: "Shift Out", key: "shiftOut", className: "shift-out" },
-    { header: "Check Out", key: "checkout", className: "checkout" },
+    {
+      header: "Check In",
+      key: "checkIn",
+      className: "check-in",
+      render: (record: SessionRecord) =>
+        record.checkIn !== "-" ? (
+          <TimeRender
+            label={record.checkIn}
+            redirect={record.checkInDateIso}
+            key={record.checkInDateIso}
+          />
+        ) : (
+          ""
+        ),
+    },
+    {
+      header: "Shift In",
+      key: "shiftIn",
+      className: "shift-in",
+      render: (record: SessionRecord) =>
+        record.shiftIn !== "-" ? (
+          <TimeRender
+            label={record.shiftIn}
+            redirect={record.shiftInDateIso}
+            key={record.shiftInDateIso}
+          />
+        ) : (
+          ""
+        ),
+    },
+    {
+      header: "Shift Out",
+      key: "shiftOut",
+      className: "shift-out",
+      render: (record: SessionRecord) =>
+        record.shiftOut !== "-" ? (
+          <TimeRender
+            label={record.shiftOut}
+            redirect={record.shiftOutDateIso}
+            key={record.shiftOutDateIso}
+          />
+        ) : (
+          ""
+        ),
+    },
+    {
+      header: "Check Out",
+      key: "checkout",
+      className: "checkout",
+      render: (record: SessionRecord) =>
+        record.checkout !== "-" ? (
+          <TimeRender
+            label={record.checkout}
+            redirect={record.checkoutDateIso}
+            key={record.checkoutDateIso}
+          />
+        ) : (
+          ""
+        ),
+    },
     {
       header: "Duration",
       key: "duration",
