@@ -38,7 +38,6 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ActivityMonitor.Installer/bin/Release/net48/ActivityMonitor.Installer.exe
-            monitor.json
+            Karmetric.Installer/bin/Release/net48/Karmetric.Installer.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

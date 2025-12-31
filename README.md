@@ -1,64 +1,73 @@
-# Activity Monitor
+# Karmetric
 
-**Activity Monitor** is a background service and UI application designed to intelligently track working sessions. It solves the common problem of "premature timeout" during inactive periods (like reading documents, watching videos, or sitting in a silent call) by using audio stream detection and power management request monitoring.
+**Karmetric** is a background service and modern web application designed to intelligently track working sessions. It solves the common problem of "premature timeout" during inactive periods (like reading documents, watching videos, or sitting in a silent call) by using audio stream detection and power management request monitoring.
 
-[![Download Latest Installer](https://img.shields.io/github/v/release/paturikaustubh/activity-monitor?label=Download%20Installer&style=for-the-badge&color=blue)](https://github.com/paturikaustubh/activity-monitor/releases/latest/download/ActivityMonitor.Installer.exe)
+[![Download Latest Installer](https://img.shields.io/github/v/release/paturikaustubh/karmetric?label=Download%20Installer&style=for-the-badge&color=blue)](https://github.com/paturikaustubh/karmetric/releases/latest/download/Karmetric.Installer.exe)
 
 ## 🚀 Key Features
 
 - **Idle Detection**: Marks you as "Away" if your keyboard/mouse are inactive for 5 minutes.
+- **Smart Monitoring**: Uses Audio API and Power Requests to keep sessions active during calls or media playback.
 - **Automatic Check In**: Starts a session when you return from being idle.
-- **Midnight Aware**: Correctly handles sessions that span across midnight, splitting them into two logical daily records.
+- **Midnight Aware**: Correctly handles sessions that span across midnight, splitting them into two logical daily records with "Shift In/Out" indicators.
+- **Modern Web UI**: interactive Dashboard and Sessions grid with daily visualizations.
 - **Offline First**: Stores all session data in a local SQLite database.
-- **No "Time Travel" Bugs**: Robust logic handles system sleep/wake cycles to prevent corrupt data entries.
 
 ## 🛠️ Architecture
 
-The solution maps to a standard client-server architecture, but running locally on your machine:
+The solution uses a modern architecture running entirely locally on your machine:
 
 1.  **Background Service (.NET 8 Worker)**:
 
     - Runs silently as a Windows Service.
-    - Monitors Audio Endpoint API and PowerCfg requests.
+    - Monitors Input, Audio Endpoint API, and PowerCfg requests.
     - Manages the SQLite database (`activity.db`).
-    - Exposes a local REST API (`localhost:2369`) for the UI.
+    - Hosts the **Web UI** and exposes a local REST API at `http://localhost:2369`.
 
-2.  **UI Application (WPF + WebView2)**:
+2.  **Web Application (React + Vite)**:
 
-    - A lightweight wrapper around a modern Web App.
-    - Displays session history, charts, and current status.
-    - Communicates with the Background Service via REST.
+    - A modern Single Page Application (SPA).
+    - Served directly by the Background Service.
+    - Accessible via your browser at `http://localhost:2369`.
+    - Features Dashboard summaries, charts, and detailed session logs.
 
-3.  **Installer**:
-    - Custom `.NET 4.8` installer (for maximum compatibility).
+3.  **Installer (WPF .NET 4.8)**:
+    - Custom installer for maximum compatibility.
     - Registers the app to run at startup.
-    - Manages strict/smart monitoring configuration.
+    - Manages configuration settings.
 
 ## 📦 Installation
 
-1.  Download the latest `ActivityMonitor.Installer.exe` from the link above (or the [Releases](https://github.com/paturikaustubh/activity-monitor/releases) page).
+1.  Download the latest `Karmetric.Installer.exe` from the link above (or the [Releases](https://github.com/paturikaustubh/karmetric/releases) page).
 2.  Run the installer.
 3.  Choose your settings:
     - **Strict Monitor**: Standard mouse/keyboard check.
     - **Smart Monitor** (Default): Includes Audio/Power detection.
-4.  The app will start automatically.
+4.  The app will start automatically. Open `http://localhost:2369` in your browser to view your activity.
 
 ## 💻 Development
 
 ### Prerequisites
 
 - .NET 8 SDK
+- Node.js & npm (for Web App)
 - PowerShell
 
 ### Building Locally
 
-Use the included build script to package everything:
+Use the included build script to package everything (Web App + Background + Installer):
 
 ```powershell
 .\package_installer.ps1
 ```
 
-This will produce an installer in `ActivityMonitor.Installer\bin\Release\net48\`.
+This script will:
+
+1. Build the React Web App (`npm run build`).
+2. Copy the build artifacts to the Background Service.
+3. Publish the Background Service.
+4. Build the Installer.
+5. Create the final executable in `Karmetric.Installer\bin\Release\net48\`.
 
 ### Update Process
 
@@ -66,7 +75,7 @@ The project uses `monitor.json` as the Single Source of Truth for versions.
 
 ## 🤝 Contributing
 
-We welcome contributions! To contribute to Activity Monitor, please follow these steps:
+We welcome contributions! To contribute to Karmetric, please follow these steps:
 
 1.  **Fork the Repository**: Fork the project to your GitHub account.
 2.  **Clone Your Fork**: Clone your forked repository to your local machine.
