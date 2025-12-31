@@ -9,8 +9,8 @@ namespace IconConverter
         static void Main(string[] args)
         {
             string baseDir = "c:/Practice/monitor-er";
-            string svgPath = Path.Combine(baseDir, "activity-monitor-logo.svg");
-            string icoPath = Path.Combine(baseDir, "ActivityMonitor.ico");
+            string svgPath = Path.Combine(baseDir, "karmetric-logo.svg");
+            string icoPath = Path.Combine(baseDir, "Karmetric.ico");
             
             Console.WriteLine($"Converting {svgPath} to {icoPath}...");
 
@@ -37,7 +37,7 @@ namespace IconConverter
                     
                     images.Write(icoPath);
                 }
-                Console.WriteLine("Success: ActivityMonitor.ico created.");
+                Console.WriteLine("Success: Karmetric.ico created.");
             }
             catch(Exception ex)
             {

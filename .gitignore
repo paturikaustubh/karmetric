@@ -18,7 +18,7 @@
 # Temporary Build Folders
 TempBuild/
 .Setup/
-ActivityMonitor.Installer/payload.zip
+Karmetric.Installer/payload.zip
 temp_payload/
 test_install/
 
