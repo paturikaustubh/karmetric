@@ -1,13 +1,12 @@
 # Karmetric
 
-**Karmetric** is a background service and modern web application designed to intelligently track working sessions. It solves the common problem of "premature timeout" during inactive periods (like reading documents, watching videos, or sitting in a silent call) by using audio stream detection and power management request monitoring.
+**Karmetric** is a background service and modern web application designed to intelligently track working sessions.
 
 [![Download Latest Installer](https://img.shields.io/github/v/release/paturikaustubh/karmetric?label=Download%20Installer&style=for-the-badge&color=blue)](https://github.com/paturikaustubh/karmetric/releases/latest/download/Karmetric.Installer.exe)
 
 ## 🚀 Key Features
 
 - **Idle Detection**: Marks you as "Away" if your keyboard/mouse are inactive for 5 minutes.
-- **Smart Monitoring**: Uses Audio API and Power Requests to keep sessions active during calls or media playback.
 - **Automatic Check In**: Starts a session when you return from being idle.
 - **Midnight Aware**: Correctly handles sessions that span across midnight, splitting them into two logical daily records with "Shift In/Out" indicators.
 - **Modern Web UI**: interactive Dashboard and Sessions grid with daily visualizations.
@@ -20,7 +19,7 @@ The solution uses a modern architecture running entirely locally on your machine
 1.  **Background Service (.NET 8 Worker)**:
 
     - Runs silently as a Windows Service.
-    - Monitors Input, Audio Endpoint API, and PowerCfg requests.
+    - Monitors Input.
     - Manages the SQLite database (`activity.db`).
     - Hosts the **Web UI** and exposes a local REST API at `http://localhost:2369`.
 
@@ -41,8 +40,7 @@ The solution uses a modern architecture running entirely locally on your machine
 1.  Download the latest `Karmetric.Installer.exe` from the link above (or the [Releases](https://github.com/paturikaustubh/karmetric/releases) page).
 2.  Run the installer.
 3.  Choose your settings:
-    - **Strict Monitor**: Standard mouse/keyboard check.
-    - **Smart Monitor** (Default): Includes Audio/Power detection.
+    **Strict Monitor**: Standard mouse/keyboard check.
 4.  The app will start automatically. Open `http://localhost:2369` in your browser to view your activity.
 
 ## 💻 Development

@@ -34,3 +34,6 @@ logs/
 Thumbs.db
 .DS_Store
 
+
+# Unused Audio Utils
+Karmetric.Background/Utils/AudioUtils.cs

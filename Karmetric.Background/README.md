@@ -4,7 +4,7 @@ The core engine of Karmetric, built as a **.NET 8 Windows Worker Service**.
 
 ## 🧠 Overview
 
-This service runs silently in the background to monitor user activity, manage session logic, and host the web interface. It allows the application to function "offline-first" without external servers.
+This service runs silently in the background to monitor user activity, manage session logic, and host the web interface.
 
 ### Tech Stack
 
@@ -12,15 +12,13 @@ This service runs silently in the background to monitor user activity, manage se
 - **API**: ASP.NET Core (Kestrel) inside the Worker
 - **Database**: SQLite
 - **ORM**: Dapper
-- **Native APIs**: Windows Core Audio API, Power Management API
 
 ## ⚙️ Core Responsibilities
 
 1.  **Activity Monitoring (`ActivityService.cs`)**:
+
     - Periodically checks mouse/keyboard input idle time (via `GetLastInputInfo`).
-    - Checks for implicit activity via "Smart Monitoring":
-      - **Audio**: Detects if audio is playing (e.g., during a call or video) using WASAPI.
-      - **Power**: Detects if an app has requested `SystemRequired` or `DisplayRequired` power availability (e.g., presentation mode).
+
 2.  **Data Persistence (`DatabaseService.cs`)**:
     - Manages the SQLite database at `%LocalAppData%\Karmetric\ActivityLog.db`.
     - Handles session start/end logic, including midnight splits.
