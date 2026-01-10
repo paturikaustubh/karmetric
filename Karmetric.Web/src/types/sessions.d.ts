@@ -45,6 +45,8 @@ interface ChartDataPoint {
 interface WeekSummary {
   totalDuration: string;
   chartData: ChartDataPoint[];
+  isLatestWeek: boolean;
+  isFirstWeek: boolean;
 }
 
 type SessionsLayout = "grid" | "days";

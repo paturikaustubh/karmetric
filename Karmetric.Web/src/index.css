@@ -59,9 +59,15 @@ button {
   &:hover {
     background-color: rgba(var(--primary-color) / 0.05);
   }
-
   &:active {
     background-color: rgba(var(--primary-color) / 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    filter: blur(1px);
+    user-select: none;
   }
 }
 

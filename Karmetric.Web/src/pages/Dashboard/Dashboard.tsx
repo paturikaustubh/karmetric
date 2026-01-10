@@ -1,4 +1,3 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
 import LoadingScreen from "../../components/ui/LoadingScreen";
 import BarChart from "../../components/ui/Chart";
 import Table, { type Column } from "../../components/ui/Table";
@@ -12,116 +11,19 @@ import {
 import styles from "./styles.module.css";
 import "./styles.css";
 import TimeRender from "../../components/ui/TimeRender";
-import { API_URL } from "../../constants";
-
-// Format Duration
-const formatDuration = (ms: number) => {
-  const totalSeconds = Math.floor(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return `${hours}h ${minutes}m ${seconds}s`;
-};
+import useDashboard from "../../hooks/useDashboard";
 
 const Dashboard: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-
-  // State
-  const [status, setStatus] = useState<StatusResponse | null>(null);
-  const [today, setToday] = useState<TodaySummary>({
-    date: "-",
-    sessionCount: 0,
-    totalDuration: "0h 0m",
-    firstCheckIn: "-",
-    latestCheckOut: "-",
-  });
-  const [weekData, setWeekData] = useState<WeekSummary | null>(null);
-  const [recentSessions, setRecentSessions] = useState<SessionRecord[]>([]);
-
-  // Timer State
-  const [timerString, setTimerString] = useState("0h 0m 0s");
-  const intervalRef = useRef<number | null>(null);
-
-  // Timer Logic
-  const updateTimer = useCallback((startTimeStr: string | null) => {
-    if (!startTimeStr || startTimeStr === "-") {
-      setTimerString("0h 0m 0s");
-      if (intervalRef.current) window.clearInterval(intervalRef.current);
-      return;
-    }
-
-    const start = new Date(startTimeStr).getTime();
-    if (intervalRef.current) window.clearInterval(intervalRef.current);
-
-    // Immediate
-    const now = new Date().getTime();
-    setTimerString(formatDuration(now - start));
-
-    // Interval
-    intervalRef.current = window.setInterval(() => {
-      const now = new Date().getTime();
-      setTimerString(formatDuration(now - start));
-    }, 1000);
-  }, []);
-
-  // Fetch Functions
-  const fetchData = useCallback(async () => {
-    try {
-      const [statusRes, todayRes, recentRes, weekRes] = await Promise.all([
-        fetch(`${API_URL}/status`).then((r) => r.json()),
-        fetch(`${API_URL}/today`).then((r) => r.json()),
-        fetch(`${API_URL}/sessions/grid?limit=3`).then((r) => r.json()),
-        fetch(`${API_URL}/week`).then((r) => r.json()),
-      ]);
-
-      // Handle Status & Timer
-      setStatus(statusRes);
-      if (statusRes.status === "In") {
-        updateTimer(statusRes.startTime);
-      } else {
-        updateTimer(null);
-      }
-
-      setToday(todayRes);
-      setRecentSessions(recentRes.data);
-      setWeekData(weekRes);
-    } catch (e) {
-      console.error("Dashboard fetch failed", e);
-    } finally {
-      setLoading(false);
-    }
-  }, [updateTimer]);
-
-  useEffect(() => {
-    fetchData();
-    const poll = setInterval(fetchData, 60000);
-    return () => {
-      clearInterval(poll);
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [fetchData]);
-
-  // Helper: "Since" Text
-  const getSinceText = () => {
-    if (status?.status === "In" && status.startTime) {
-      const d = new Date(status.startTime);
-      const dateStr =
-        d.toLocaleDateString("en-GB", {
-          day: "numeric",
-          month: "short",
-          year: "2-digit",
-        }) +
-        " - " +
-        d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-      return dateStr;
-    }
-    if (today.firstCheckIn) {
-      return `${today.date} - ${today.firstCheckIn}`;
-    }
-    return "-";
-  };
-
-  // Recent Columns
+  const {
+    loading,
+    timerString,
+    getSinceText,
+    today,
+    weekData,
+    recentSessions,
+    nextWeek,
+    prevWeek,
+  } = useDashboard();
   const recentColumns: Column<SessionRecord>[] = [
     {
       header: "Check In",
@@ -197,7 +99,27 @@ const Dashboard: React.FC = () => {
         {/* Card 3: Weekly Summary */}
         <Card className={`${styles.card} weekly-summary`}>
           <CardTitle className="weekly-summary">
-            <span>Weekly Summary</span>
+            <div className="left-title">
+              <span>Weekly Summary</span>
+              <div className="navigators">
+                <button
+                  onClick={prevWeek}
+                  disabled={!weekData || weekData.isFirstWeek}
+                >
+                  <span className="material-symbols-outlined">
+                    chevron_left
+                  </span>
+                </button>
+                <button
+                  onClick={nextWeek}
+                  disabled={!weekData || weekData.isLatestWeek}
+                >
+                  <span className="material-symbols-outlined">
+                    chevron_right
+                  </span>
+                </button>
+              </div>
+            </div>
             <span
               style={{
                 fontSize: "0.8em",

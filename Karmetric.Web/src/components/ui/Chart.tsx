@@ -27,7 +27,7 @@ export default function BarChart({
 
   // Initialize/process input data
   useEffect(() => {
-    let rawData = rawDataProp as any;
+    let rawData = rawDataProp;
 
     if (!rawData && data.length > 0) rawData = data;
 
@@ -128,7 +128,8 @@ export default function BarChart({
 
   // Fix: Ensure maxVal is at least 4 to prevent duplicate ticks (0,0,1,1) for small values
   const rawMax = data.length ? Math.max(...data) : 0;
-  const maxVal = Math.max(rawMax, 4);
+  // Calculate maxVal as the next multiple of 4 (minimum 4) to ensure clean integer ticks (0, 1/4, 2/4, 3/4, 4/4)
+  const maxVal = Math.ceil(Math.max(rawMax, 4) / 4) * 4;
 
   const avg = data.length ? data.reduce((a, b) => a + b, 0) / data.length : 0;
   const scaleY = (v: number) => (v / (maxVal || 1)) * h;

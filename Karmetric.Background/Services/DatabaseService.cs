@@ -192,15 +192,18 @@ namespace Karmetric.Background.Services
             return dto;
         }
 
-        public async Task<WeekSummary> GetWeeklySummary()
+        public async Task<WeekSummary> GetWeeklySummary(int weekOffset = 0)
         {
             using var conn = new SQLiteConnection(_connectionString);
             
             var today = DateTime.Today;
-            // Get Start of week (Sunday)
-            var diff = today.DayOfWeek - DayOfWeek.Sunday;
+            // Calculate target week's date based on offset
+            var targetDate = today.AddDays(weekOffset * 7);
+
+            // Get Start of week (Sunday) for the target date
+            var diff = targetDate.DayOfWeek - DayOfWeek.Sunday;
             if (diff < 0) diff += 7;
-            var startOfWeek = today.AddDays(-diff).Date;
+            var startOfWeek = targetDate.AddDays(-diff).Date;
             
             // Get week range (Sun - Sat)
             var endOfWeek = startOfWeek.AddDays(7); // < EndOfWeek
@@ -232,10 +235,37 @@ namespace Karmetric.Background.Services
             }
 
             var totalTs = TimeSpan.FromSeconds(totalDurationSeconds);
+
+            // Determine Flags
+            var isLatestWeek = weekOffset >= 0; // Assuming positive offset is future/current
+            
+            // For IsFirstWeek, check if there are any sessions before this week
+            var minStartSql = "SELECT MIN(StartTime) FROM Sessions";
+            var minStartStr = await conn.ExecuteScalarAsync<string>(minStartSql);
+            var isFirstWeek = false;
+            
+            if (!string.IsNullOrEmpty(minStartStr) && DateTime.TryParse(minStartStr, out var firstSessionDate))
+            {
+                // If the start of the current view week is <= the very first session date, 
+                // OR if the first session date falls within this week.
+                // Actually, if startOfWeek is <= firstSessionDate, it means we are at the beginning.
+                // Better check: Are there any sessions with StartTime < StartOfWeek?
+                var countBeforeSql = "SELECT COUNT(*) FROM Sessions WHERE StartTime < @StartOfWeek";
+                var countBefore = await conn.ExecuteScalarAsync<long>(countBeforeSql, new { StartOfWeek = startOfWeek.ToString("o") });
+                isFirstWeek = countBefore == 0;
+            }
+            else
+            {
+                // No data at all
+                isFirstWeek = true;
+            }
+
             return new WeekSummary
             {
                 TotalDuration = $"{(int)totalTs.TotalHours}h {totalTs.Minutes}m",
-                ChartData = chartData
+                ChartData = chartData,
+                IsLatestWeek = isLatestWeek,
+                IsFirstWeek = isFirstWeek
             };
         }
 

@@ -47,6 +47,8 @@ namespace Karmetric.Background.Models
     {
         public string TotalDuration { get; set; }
         public System.Collections.Generic.List<ChartDataPoint> ChartData { get; set; }
+        public bool IsLatestWeek { get; set; }
+        public bool IsFirstWeek { get; set; }
     }
 
     public class ChartDataPoint

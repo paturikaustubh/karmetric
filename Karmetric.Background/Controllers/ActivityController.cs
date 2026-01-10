@@ -79,9 +79,9 @@ namespace Karmetric.Background.Controllers
         }
 
         [HttpGet("week")]
-        public async Task<IActionResult> GetWeekSummary()
+        public async Task<IActionResult> GetWeekSummary([FromQuery] int offset = 0)
         {
-            var summary = await _dbService.GetWeeklySummary();
+            var summary = await _dbService.GetWeeklySummary(offset);
             return Ok(summary);
         }
 
