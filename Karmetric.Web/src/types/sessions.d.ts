@@ -45,6 +45,8 @@ interface ChartDataPoint {
 interface WeekSummary {
   totalDuration: string;
   chartData: ChartDataPoint[];
+  isLatestWeek: boolean;
+  isFirstWeek: boolean;
 }
 
 type SessionsLayout = "grid" | "days";
@@ -84,4 +86,9 @@ interface PaginatorProps {
   totalItems: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
+}
+
+interface DateNavigators {
+  previousDate: string | null;
+  nextDate: string | null;
 }

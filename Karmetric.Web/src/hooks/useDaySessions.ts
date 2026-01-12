@@ -10,6 +10,11 @@ export default function useDaySessions() {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<DaySummary | null>(null);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
+  const [navigators, setNavigators] = useState<DateNavigators>({
+    previousDate: null,
+    nextDate: null,
+  });
+
   const [pagination, setPagination] = useState<PaginatorProps>({
     currentPage: 1,
     pageSize: 10,
@@ -33,10 +38,14 @@ export default function useDaySessions() {
     async (page: number, pageSize: number) => {
       if (!dayIso) return;
       try {
-        const res = await fetch(
-          `${API_URL}/sessions/days/${dayIso}?limit=${pageSize}&page=${page}`
-        );
-        const data = (await res.json()) as DayDetailsResponse;
+        const [detailsRes, navRes] = await Promise.all([
+          fetch(
+            `${API_URL}/sessions/days/${dayIso}?limit=${pageSize}&page=${page}`
+          ),
+          fetch(`${API_URL}/sessions/days/${dayIso}/adjacent`),
+        ]);
+
+        const data = (await detailsRes.json()) as DayDetailsResponse;
         setSummary(data.summary);
         setSessions(data.sessions.data);
         setPagination({
@@ -47,6 +56,9 @@ export default function useDaySessions() {
           onPageChange: handlePageChange,
           onPageSizeChange: handlePageSizeChange,
         });
+
+        const navData = await navRes.json();
+        setNavigators(navData);
       } catch (error) {
         console.error("Failed to fetch day sessions", error);
       } finally {
@@ -66,5 +78,6 @@ export default function useDaySessions() {
     summary,
     sessions,
     pagination,
+    navigators,
   };
 }

@@ -7,4 +7,25 @@
     display: flex;
     justify-content: space-between;
   }
+
+  &.weekly-summary div.left-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+
+    div.navigators {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+
+      button {
+        padding: 0.1em;
+        border-radius: 50%;
+        font-size: 1.1em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
 }
