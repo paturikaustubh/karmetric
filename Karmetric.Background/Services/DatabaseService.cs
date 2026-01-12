@@ -442,6 +442,26 @@ namespace Karmetric.Background.Services
                 }
             };
         }
+
+        public async Task<object> GetDayAdjacentDates(string dateIso)
+        {
+            if (!DateTime.TryParse(dateIso, out var date)) return new { previousDate = (string)null, nextDate = (string)null };
+
+            using var conn = new SQLiteConnection(_connectionString);
+            
+            var startOfDay = date.Date;
+            var endOfDay = date.Date.AddDays(1);
+            
+            // Previous Date: Max date < startOfDay
+            var prevSql = @"SELECT MAX(substr(StartTime, 1, 10)) FROM Sessions WHERE StartTime < @StartOfDay";
+            var previousDate = await conn.ExecuteScalarAsync<string>(prevSql, new { StartOfDay = startOfDay.ToString("o") });
+
+            // Next Date: Min date >= endOfDay
+            var nextSql = @"SELECT MIN(substr(StartTime, 1, 10)) FROM Sessions WHERE StartTime >= @EndOfDay";
+            var nextDate = await conn.ExecuteScalarAsync<string>(nextSql, new { EndOfDay = endOfDay.ToString("o") });
+
+            return new { previousDate, nextDate };
+        }
     }
 
     public class DaySummaryDto

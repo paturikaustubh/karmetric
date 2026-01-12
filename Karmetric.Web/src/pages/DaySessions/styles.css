@@ -3,3 +3,25 @@
   gap: 1em;
   align-items: center;
 }
+
+.page-title-right {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+
+  .navigators {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    a {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      button {
+        padding: 0;
+        border-radius: 50%;
+        font-size: 2em;
+      }
+    }
+  }
+}
