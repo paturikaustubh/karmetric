@@ -6,7 +6,8 @@ import useDaySessions from "../../hooks/useDaySessions";
 import "./styles.css";
 
 export default function DaySessions() {
-  const { loading, sessions, summary, pagination } = useDaySessions();
+  const { loading, sessions, summary, pagination, navigators } =
+    useDaySessions();
   const columns: Column<SessionRecord>[] = [
     {
       header: "S No.",
@@ -28,6 +29,29 @@ export default function DaySessions() {
       render: (item: SessionRecord) => <span>{item.duration}</span>,
     },
   ];
+
+  /* Helper to render disabled button if link is null */
+  const renderNavButton = (
+    date: string | null,
+    icon: string,
+    label: string
+  ) => {
+    if (date) {
+      return (
+        <Link to={`/sessions/days/${date}`} aria-label={label}>
+          <button className="material-symbols-outlined">{icon}</button>
+        </Link>
+      );
+    }
+    return (
+      <Link to={`#`}>
+        <button className="material-symbols-outlined" disabled>
+          {icon}
+        </button>
+      </Link>
+    );
+  };
+
   return (
     <>
       <LoadingScreen isOpen={loading} />
@@ -41,6 +65,14 @@ export default function DaySessions() {
           <h2>{summary && `${summary.date} - ${summary.day}`}</h2>
         </div>
         <div className="page-title-right">
+          <div className="navigators">
+            {renderNavButton(
+              navigators.previousDate,
+              "chevron_left",
+              "Previous Day"
+            )}
+            {renderNavButton(navigators.nextDate, "chevron_right", "Next Day")}
+          </div>
           <h2>{summary && `${summary.totalDuration}`}</h2>
         </div>
       </section>

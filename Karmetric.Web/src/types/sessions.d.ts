@@ -87,3 +87,8 @@ interface PaginatorProps {
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
 }
+
+interface DateNavigators {
+  previousDate: string | null;
+  nextDate: string | null;
+}

@@ -78,6 +78,13 @@ namespace Karmetric.Background.Controllers
             return Ok(data);
         }
 
+        [HttpGet("sessions/days/{date}/adjacent")]
+        public async Task<IActionResult> GetDayAdjacentDates(string date)
+        {
+            var data = await _dbService.GetDayAdjacentDates(date);
+            return Ok(data);
+        }
+
         [HttpGet("week")]
         public async Task<IActionResult> GetWeekSummary([FromQuery] int offset = 0)
         {
